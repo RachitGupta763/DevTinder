@@ -1,0 +1,23 @@
+{
+  "name": "devtinders",
+  "version": "1.0.0",
+  "description": "Social Developers Group",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "(https://github.com/RachitGupta763/DevTinder.git)"
+  },
+  "keywords": [
+    "NodeJs"
+  ],
+  "author": "Rachit Gupta",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1",
+    "mongoose": "^8.7.1"
+  }
+}
