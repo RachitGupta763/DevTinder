@@ -1,81 +1,140 @@
 const express=require("express");
+const { adminAuth } = require("./Middleware/Auth");
 
 const app=express();
 
+// playing with multiple routing
+app.use("/user" , 
+    (req,res,next) =>{
+    console.log("Request Handler 1");
+    next();
+    },
+    [(req,res,next) =>{
+        console.log("Request Handler 2");
+        next();
+    },
+    (req,res,next) =>{
+        console.log("Request Handler 3");
+        next();
+    }],
+    (req,res) =>{
+        console.log("Another request Handler ");
+        res.send("HANDLER");
+    }
+);
 
-// The order of writing handler is matter as -> we call "/hello" router but it will send the reponse of "/" router 
-// as "/" router is written above and our srever is matches this route followed by other it simply return it. 
-// to avoid it we simply define route by different names LIKE -> /Home , /About , /Contact etc no of the route start with "/" only.
-
-app.use("/hello",(req,res)=>{
-    res.send("Here is hello");
+app.use("/user" , (req,res) =>{
+    console.log("Another request Handler ");
+    res.send("HANDLER");
 });
 
-app.use("/hello/123",(req,res)=>{
-    res.send("Here is hello/123");
-});
-
-// The reponse of above two handler is same as "/hello" is common in both.
-// But the response of "/hello" and "/hello123" is different as their name is different. 
-app.use("/hello123",(req,res)=>{
-    res.send("Here is hello123");
-});
-
-// app.use("/",(req,res)=>{
-//     res.send("Hello Everyone");
-// });
-
-
-app.get("/abc?d",(req,res) =>{
-    res.send(" ? -> Optional Chaining that means we can use /abcd and /abd both works fine");
-});
-
-app.get("/a(bc)?d",(req,res) =>{
-    res.send(" ? -> Optional Chaining that means we can use /abcd and /ad both works fine");
-});
-
-
-
-app.get("/abc+d",(req,res) =>{
-    res.send(" + -> use to add 'c' as many times in routing that means we can use /abcd and /abcccccd both works fine");
-});
-
-app.get("/a(bc)+d",(req,res) =>{
-    res.send(" + -> use to add 'bc' as many times in routing that means we can use /abcd and /abcbcbcd both works fine");
+app.use("/user" , (req,res,next) =>{
+    console.log("Another request Handler ");
+    next();
 });
 
 
-app.get("/abc*d",(req,res) =>{
-    res.send(" * -> use to add any character as many times in routing that means we can use /abcd and /abcnshfjffkd both works fine");
+
+
+// Method 1 to handle Authentication
+
+app.get("/admin/getAllData",(req,res) =>{
+    const token='xyz';
+    const isAdmin = token==='xyz';
+    if(!isAdmin){
+        res.status(401).send('Unauthorize Access');
+    }
+    else{
+        res.send("All Data Send SuccessFully") ;
+    }
+});
+
+app.delete("/admin/deleteAllData",(req,res) =>{
+    const token='xyzw';
+    const isAdmin = token==='xyz';
+    if(!isAdmin){
+        res.status(401).send('Unauthorize Access');
+    }
+    else{
+        res.send("All Data deleted SuccessFully") ;
+    }
 });
 
 
-//we can also use regex 
-app.get(/a/,(req,res) =>{
-    res.send(" a should be present in route");
+
+
+// Method 2 to handle Authentication
+
+app.use("/admin" ,(req,res,next)=>{
+    const token='xyz';
+    const isAdmin = token==='xyz';
+    console.log("Handle Authentication");
+    if(!isAdmin){
+        res.status(401).send('Unauthorize Access');
+    }
+    else{
+        next();
+    }
+});
+app.get("/admin/getAllData",(req,res) =>{
+    res.send("All Data Send SuccessFully") ;
+});
+
+app.delete("/admin/deleteAllData",(req,res) =>{
+        res.send("All Data deleted SuccessFully") ;
 });
 
 
-app.get(/fly$/,(req,res) =>{
-    res.send(" fly should be present at end in route");
+
+
+
+// Method 3 to handle Authentication
+
+app.use("/admin" ,adminAuth);
+
+app.get("/admin/getAllData",(req,res) =>{
+    res.send("All Data Send SuccessFully") ;
+});
+
+app.delete("/admin/deleteAllData",(req,res) =>{
+        res.send("All Data deleted SuccessFully") ;
 });
 
 
-app.get("/user",(req,res) =>{
-    console.log(req.query);
-    res.send("we use req.query to read parameter passing on url");  
+
+
+
+
+
+
+// This is method 1 to deal with error.
+
+app.get("/getAllData",(req,res,) =>{
+    throw new Error("hello");
+    res.send("Data Send Successfully");
+    
 });
-// The result of this http://localhost:7771/user?userName=Rachit&password=1234567 is
-// {userName:'Rachit' , password:'1234567'}
 
+// This should only handle error if there were error before of this logic.
 
+app.use("/",(err,req,res,next) =>{
+    if(err){
+        res.status(501).send("Something Went Wrong");
+    }
+})
 
-app.get("/user/:userId",(req,res) =>{
-    console.log(req.params);
-    res.send("we use req.param to handle dynamic routing");  
+// This is method 2 to handle error and this is most efficient way to deal with error using try catch block
+
+app.get("/getAllData",(req,res) =>{
+    try{
+        throw new Error("Hello");
+        res.send("data send successfully");
+    }  
+    catch(err){
+        res.status(502).send("Some Error Occured");
+    } 
 });
 
-
-app.listen(7771,() =>{
-    console.log("Sever is running at Port 7771")
+app.listen(7771,()=>{
+    console.log("Sever is running at Port 7771");
 });
