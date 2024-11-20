@@ -16,5 +16,21 @@ const ValidateAllField = (req) =>{
 
 };
 
-module.exports = {ValidateAllField};
+const validInputData = (req) =>{
+    const AllowedDatatoUpdate = [
+        "firstName",
+        "lastName",
+        "photoUrl",
+        "gender",
+        "about",
+        "age",
+        "skills"
+    ]
+
+    const inputData = Object.keys(req.body).every((val) => AllowedDatatoUpdate.includes(val));
+
+    return inputData;
+}
+
+module.exports = {ValidateAllField,validInputData};
 
